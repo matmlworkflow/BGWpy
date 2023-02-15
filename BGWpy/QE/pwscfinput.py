@@ -19,7 +19,7 @@ class PWscfInput(Writable):
         self.ions = Namelist('ions')
         self.cell = Namelist('cell')
         self.atomic_species = Card('ATOMIC_SPECIES', '')
-        self.atomic_positions = Card('ATOMIC_POSITIONS','crystal',quotes=False)
+        self.atomic_positions = Card('ATOMIC_POSITIONS', 'angstrom', quotes=False)
         self.k_points = Card('K_POINTS', '')
         self.cell_parameters = Card('CELL_PARAMETERS', 'angstrom')
         self.constraints = Card('CONSTRAINTS', '')
@@ -146,7 +146,8 @@ class PWscfInput(Writable):
         return S
 
     def set_kpoints_crystal(self, kpts, wtks):
-        self.k_points.option = 'crystal'
+        #self.k_points.option = 'crystal'
+        self.k_points.option = 'angstrom'
         self.k_points.append(len(kpts))
         for k, w in zip(kpts, wtks):
             self.k_points.append(list(k) + [w])
@@ -181,13 +182,17 @@ class PWscfInput(Writable):
                 self.atomic_species[i].append(pseudo)
 
         # Set atomic positions
-        self.atomic_positions.option = 'crystal'
+        #self.atomic_positions.option = 'crystal'
+        #for site in structure.sites:
+        #    frac_coords = list(site.frac_coords)
+        #    for i in range(3):
+        #        if abs(frac_coords[i]) > .5:
+        #            frac_coords[i] += -1. * np.sign(frac_coords[i])
+        #    self.atomic_positions.append([site.specie.symbol] + frac_coords)
+        self.atomic_positions.option = 'angstrom'
         for site in structure.sites:
-            frac_coords = list(site.frac_coords)
-            for i in range(3):
-                if abs(frac_coords[i]) > .5:
-                    frac_coords[i] += -1. * np.sign(frac_coords[i])
-            self.atomic_positions.append([site.specie.symbol] + frac_coords)
+            coords = list(site.coords)
+            self.atomic_positions.append([site.specie.symbol] + coords)
 
     @property
     def pseudos(self):

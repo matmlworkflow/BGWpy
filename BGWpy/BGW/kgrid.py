@@ -129,8 +129,10 @@ class KgridTask(Task):
     
         abc = np.array(structure.lattice.abc)
     
-        latt_vec_rel = (structure.lattice.matrix.transpose() / abc).transpose().round(12)
-        pos_cart_rel = np.dot(structure.frac_coords, latt_vec_rel).round(6)
+        #latt_vec_rel = (structure.lattice.matrix.transpose() / abc).transpose().round(12)
+        #pos_cart_rel = np.dot(structure.frac_coords, latt_vec_rel).round(6)
+        latt_vec_rel = structure.lattice.matrix.round(12)
+        pos_cart_rel = structure.cart_coords
     
         S = ''
     
@@ -355,8 +357,10 @@ def get_kgrid_input(structure, ngkpt, kshift=[.0,.0,.0], qshift=[.0,.0,.0],
 
     abc = np.array(structure.lattice.abc)
 
-    latt_vec_rel = (structure.lattice.matrix.transpose() / abc).transpose().round(12)
-    pos_cart_rel = np.dot(structure.frac_coords, latt_vec_rel).round(6)
+    #latt_vec_rel = (structure.lattice.matrix.transpose() / abc).transpose().round(12)
+    #pos_cart_rel = np.dot(structure.frac_coords, latt_vec_rel).round(6)
+    latt_vec_rel = structure.lattice.matrix.round(12)
+    pos_cart_rel = structure.cart_coords
 
     S = ''
 
