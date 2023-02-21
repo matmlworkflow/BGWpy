@@ -146,8 +146,7 @@ class PWscfInput(Writable):
         return S
 
     def set_kpoints_crystal(self, kpts, wtks):
-        #self.k_points.option = 'crystal'
-        self.k_points.option = 'angstrom'
+        self.k_points.option = 'crystal'
         self.k_points.append(len(kpts))
         for k, w in zip(kpts, wtks):
             self.k_points.append(list(k) + [w])
