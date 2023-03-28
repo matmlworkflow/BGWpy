@@ -66,43 +66,44 @@ class EpsilonTask(BGWTask):
 
         super(EpsilonTask, self).__init__(dirname, **kwargs)
 
-        # Compute k-points grids
-        # TODO maybe make these properties
-        #structure = kwargs['structure']
-        #ngkpt = kwargs['ngkpt']
-        #kpts_ush, wtks_ush = get_kpt_grid(structure, ngkpt)
-        kgrid_kwargs = dict()
-        for key in ('structure', 'ngkpt', 'fft', 'use_tr', 'clean_after'):
-            if key in kwargs:
-                kgrid_kwargs[key] = kwargs[key]
-        self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
+        if not kwargs['dirnames_only']:
+            # Compute k-points grids
+            # TODO maybe make these properties
+            #structure = kwargs['structure']
+            #ngkpt = kwargs['ngkpt']
+            #kpts_ush, wtks_ush = get_kpt_grid(structure, ngkpt)
+            kgrid_kwargs = dict()
+            for key in ('structure', 'ngkpt', 'fft', 'use_tr', 'clean_after'):
+                if key in kwargs:
+                    kgrid_kwargs[key] = kwargs[key]
+            self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
 
-        symkpt = kwargs.get('symkpt', True)
-        if symkpt:
-            kpts_ush, wtks_ush = self.kgridtask.get_kpoints()
-        else:
-            kpts_ush, wtks_ush = self.kgridtask.get_kpt_grid_nosym()
+            symkpt = kwargs.get('symkpt', True)
+            if symkpt:
+                kpts_ush, wtks_ush = self.kgridtask.get_kpoints()
+            else:
+                kpts_ush, wtks_ush = self.kgridtask.get_kpt_grid_nosym()
 
-        extra_lines = kwargs.get('extra_lines',[])
-        extra_variables = kwargs.get('extra_variables',{})
+            extra_lines = kwargs.get('extra_lines',[])
+            extra_variables = kwargs.get('extra_variables',{})
 
-        # Input file
-        self.input = EpsilonInput(
-            kwargs['ecuteps'],
-            kwargs['qshift'],
-            kpts_ush[1:],
-            *extra_lines,
-            **extra_variables)
+            # Input file
+            self.input = EpsilonInput(
+                kwargs['ecuteps'],
+                kwargs['qshift'],
+                kpts_ush[1:],
+                *extra_lines,
+                **extra_variables)
 
-        self.input.fname = self._input_fname
+            self.input.fname = self._input_fname
 
-        # Set up the run script
-        self.wfn_fname = kwargs['wfn_fname']
-        self.wfnq_fname = kwargs['wfnq_fname']
+            # Set up the run script
+            self.wfn_fname = kwargs['wfn_fname']
+            self.wfnq_fname = kwargs['wfnq_fname']
 
-        ex = 'epsilon.cplx.x' if self._flavor_complex else 'epsilon.real.x'
-        self.runscript['EPSILON'] = ex
-        self.runscript.append('$MPIRUN $EPSILON &> {}'.format(self._output_fname))
+            ex = 'epsilon.cplx.x' if self._flavor_complex else 'epsilon.real.x'
+            self.runscript['EPSILON'] = ex
+            self.runscript.append('$MPIRUN $EPSILON &> {}'.format(self._output_fname))
 
     @property
     def wfn_fname(self):

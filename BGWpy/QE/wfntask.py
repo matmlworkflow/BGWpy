@@ -74,34 +74,35 @@ class QeWfnTask(QeTask):
         super(QeWfnTask, self).__init__(dirname, **kwargs)
         self.add_pseudos_copy()
 
-        kpts, wtks = self.get_kpts(**kwargs)
+        if not kwargs['dirnames_only']:
+            kpts, wtks = self.get_kpts(**kwargs)
 
-        self.charge_density_fname = kwargs['charge_density_fname']
-        if 'spin_polarization_fname' in kwargs:
-            self.spin_polarization_fname = kwargs['spin_polarization_fname']
+            self.charge_density_fname = kwargs['charge_density_fname']
+            if 'spin_polarization_fname' in kwargs:
+                self.spin_polarization_fname = kwargs['spin_polarization_fname']
 
-        self.data_file_fname = kwargs['data_file_fname']
+            self.data_file_fname = kwargs['data_file_fname']
 
-        # Input file
-        self.input = get_bands_input(
-            self.prefix,
-            self.pseudo_dir,
-            self.pseudos,
-            self.structure,
-            kwargs['ecutwfc'],
-            kpts,
-            wtks,
-            nbnd = kwargs.get('nbnd'),
-            )
+            # Input file
+            self.input = get_bands_input(
+                self.prefix,
+                self.pseudo_dir,
+                self.pseudos,
+                self.structure,
+                kwargs['ecutwfc'],
+                kpts,
+                wtks,
+                nbnd = kwargs.get('nbnd'),
+                )
 
-        if 'variables' in kwargs:
-            self.input.set_variables(kwargs['variables'])
+            if 'variables' in kwargs:
+                self.input.set_variables(kwargs['variables'])
 
-        self.input.fname = self._input_fname
+            self.input.fname = self._input_fname
 
-        # Run script
-        self.runscript.append('$MPIRUN $PW $PWFLAGS -in {} &> {}'.format(
-                              self._input_fname, self._output_fname))
+            # Run script
+            self.runscript.append('$MPIRUN $PW $PWFLAGS -in {} &> {}'.format(
+                                  self._input_fname, self._output_fname))
 
     @property
     def charge_density_fname(self):

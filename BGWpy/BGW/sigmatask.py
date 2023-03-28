@@ -78,90 +78,91 @@ class SigmaTask(BGWTask):
 
         super(SigmaTask, self).__init__(dirname, **kwargs)
 
-        extra_lines = kwargs.get('extra_lines',[])
-        extra_variables = kwargs.get('extra_variables',{})
+        if not kwargs['dirnames_only']:
+            extra_lines = kwargs.get('extra_lines',[])
+            extra_variables = kwargs.get('extra_variables',{})
 
 
-        # Use specified kpoints or compute them from grid.
-        kpt_aliases = ('kpts', 'kpoints', 'sigma_kpts', 'sigma_k_points', 'sigma_kpoints')
-        for key in kpt_aliases:
-            if key in kwargs:
-                kpts = kwargs[key]
-                break
-        else:
-            # Compute k-points grids
-            #structure = kwargs['structure']
-            #ngkpt = kwargs['ngkpt']
-            #kpts, wtks = get_kpt_grid(structure, ngkpt)
-            kgrid_kwargs = dict()
-            for key in ('structure', 'ngkpt', 'fft', 'use_tr', 'clean_after'):
+            # Use specified kpoints or compute them from grid.
+            kpt_aliases = ('kpts', 'kpoints', 'sigma_kpts', 'sigma_k_points', 'sigma_kpoints')
+            for key in kpt_aliases:
                 if key in kwargs:
-                    kgrid_kwargs[key] = kwargs[key]
-            self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
-
-            symkpt = kwargs.get('symkpt', True)
-            if symkpt:
-                kpts, wtks = self.kgridtask.get_kpoints()
+                    kpts = kwargs[key]
+                    break
             else:
-                kpts, wtks = self.kgridtask.get_kpt_grid_nosym()
+                # Compute k-points grids
+                #structure = kwargs['structure']
+                #ngkpt = kwargs['ngkpt']
+                #kpts, wtks = get_kpt_grid(structure, ngkpt)
+                kgrid_kwargs = dict()
+                for key in ('structure', 'ngkpt', 'fft', 'use_tr', 'clean_after'):
+                    if key in kwargs:
+                        kgrid_kwargs[key] = kwargs[key]
+                self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
+
+                symkpt = kwargs.get('symkpt', True)
+                if symkpt:
+                    kpts, wtks = self.kgridtask.get_kpoints()
+                else:
+                    kpts, wtks = self.kgridtask.get_kpt_grid_nosym()
 
 
-        # Use specified qpoints or compute them from grid (HF).
-        if 'qpts' in kwargs:
-            qpts = kwargs['qpts']
-        elif 'ngqpt' in kwargs:
-            #structure = kwargs['structure']
-            #ngqpt = kwargs['ngqpt']
-            #qpts, wtqs = get_kpt_grid(structure, ngqpt)
-            kgrid_kwargs = dict(ngkpt=kwargs['ngqpt'])
-            for key in ('structure', 'fft', 'use_tr', 'clean_after'):
-                if key in kwargs:
-                    kgrid_kwargs[key] = kwargs[key]
-            self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
-            qpts, wtqs = self.kgridtask.get_kpoints()
-            
-        else:
-            qpts = []
-        if 'ngqpt' in kwargs:
-            extra_variables['qpts'] = qpts
-            extra_variables['ngqpt'] = kwargs['ngqpt']
+            # Use specified qpoints or compute them from grid (HF).
+            if 'qpts' in kwargs:
+                qpts = kwargs['qpts']
+            elif 'ngqpt' in kwargs:
+                #structure = kwargs['structure']
+                #ngqpt = kwargs['ngqpt']
+                #qpts, wtqs = get_kpt_grid(structure, ngqpt)
+                kgrid_kwargs = dict(ngkpt=kwargs['ngqpt'])
+                for key in ('structure', 'fft', 'use_tr', 'clean_after'):
+                    if key in kwargs:
+                        kgrid_kwargs[key] = kwargs[key]
+                self.kgridtask = KgridTask(dirname=dirname, **kgrid_kwargs)
+                qpts, wtqs = self.kgridtask.get_kpoints()
+                
+            else:
+                qpts = []
+            if 'ngqpt' in kwargs:
+                extra_variables['qpts'] = qpts
+                extra_variables['ngqpt'] = kwargs['ngqpt']
 
 
-        # Input file
-        self.input = SigmaInput(
-            kwargs['ibnd_min'],
-            kwargs['ibnd_max'],
-            kpts,
-            *extra_lines,
-            **extra_variables)
+            # Input file
+            self.input = SigmaInput(
+                kwargs['ibnd_min'],
+                kwargs['ibnd_max'],
+                kpts,
+                *extra_lines,
+                **extra_variables)
 
-        self.input.fname = self._input_fname
-
-
-        # Prepare links
-        self.wfn_co_fname = kwargs['wfn_co_fname']
-        self.rho_fname = kwargs['rho_fname']
-
-        if 'vxc_dat_fname' in kwargs:
-            self.vxc_dat_fname = kwargs['vxc_dat_fname']
-        elif 'vxc_fname' in kwargs:
-            self.vxc_fname = kwargs['vxc_fname']
-        else:
-            raise Exception(
-                "Either 'vxc_dat_fname' or 'vxc_fname' must be provided " +
-                "to SigmaTask.")
-
-        # It might be useful to issue a warning if those
-        # files are not specified, but one would have to check the value
-        # of frequency_dependence... 
-        self.eps0mat_fname = kwargs.get('eps0mat_fname')
-        self.epsmat_fname = kwargs.get('epsmat_fname')
+            self.input.fname = self._input_fname
 
 
-        # Set up the run script
-        ex = 'sigma.cplx.x' if self._flavor_complex else 'sigma.real.x'
-        self.runscript['SIGMA'] = ex
-        self.runscript.append('$MPIRUN $SIGMA &> {}'.format(self._output_fname))
+            # Prepare links
+            self.wfn_co_fname = kwargs['wfn_co_fname']
+            self.rho_fname = kwargs['rho_fname']
+
+            if 'vxc_dat_fname' in kwargs:
+                self.vxc_dat_fname = kwargs['vxc_dat_fname']
+            elif 'vxc_fname' in kwargs:
+                self.vxc_fname = kwargs['vxc_fname']
+            else:
+                raise Exception(
+                    "Either 'vxc_dat_fname' or 'vxc_fname' must be provided " +
+                    "to SigmaTask.")
+
+            # It might be useful to issue a warning if those
+            # files are not specified, but one would have to check the value
+            # of frequency_dependence... 
+            self.eps0mat_fname = kwargs.get('eps0mat_fname')
+            self.epsmat_fname = kwargs.get('epsmat_fname')
+
+
+            # Set up the run script
+            ex = 'sigma.cplx.x' if self._flavor_complex else 'sigma.real.x'
+            self.runscript['SIGMA'] = ex
+            self.runscript.append('$MPIRUN $SIGMA &> {}'.format(self._output_fname))
 
 
     @property

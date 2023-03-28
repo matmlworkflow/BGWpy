@@ -74,27 +74,28 @@ class QeScfTask(QeTask):
 
         super(QeScfTask, self).__init__(dirname, **kwargs)
 
-        kpts, wtks = self.get_kpts(**kwargs)
+        if not kwargs['dirnames_only']:
+            kpts, wtks = self.get_kpts(**kwargs)
 
-        # Input file
-        self.input = get_scf_input(
-            self.prefix,
-            self.pseudo_dir,
-            self.pseudos,
-            self.structure,
-            kwargs['ecutwfc'],
-            kpts,
-            wtks,
-            )
+            # Input file
+            self.input = get_scf_input(
+                self.prefix,
+                self.pseudo_dir,
+                self.pseudos,
+                self.structure,
+                kwargs['ecutwfc'],
+                kpts,
+                wtks,
+                )
 
-        if 'variables' in kwargs:
-            self.input.set_variables(kwargs['variables'])
+            if 'variables' in kwargs:
+                self.input.set_variables(kwargs['variables'])
 
-        self.input.fname = self._input_fname
+            self.input.fname = self._input_fname
 
-        # Run script
-        self.runscript.append('$MPIRUN $PW $PWFLAGS -in {} &> {}'.format(
-                              self._input_fname, self._output_fname))
+            # Run script
+            self.runscript.append('$MPIRUN $PW $PWFLAGS -in {} &> {}'.format(
+                                  self._input_fname, self._output_fname))
 
     @property
     def charge_density_fname(self):
