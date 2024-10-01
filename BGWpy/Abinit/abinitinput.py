@@ -174,7 +174,7 @@ def structure_to_abivars(structure):
         xred.append(site.frac_coords.round(14).tolist())
 
     natom = structure.num_sites
-    ntypat = structure.ntypesp
+    ntypat = structure.n_elems
 
     znucl_atom = structure.atomic_numbers
 
